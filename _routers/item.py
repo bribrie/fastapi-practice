@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query, Path, Body
 from typing import Union, Annotated
-from _models.item import Item
+from _models.item import Item, OmitItem
 from _models.user import User
 
 router = APIRouter()
@@ -8,13 +8,14 @@ router = APIRouter()
 fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
 
 # Declare data model as a parameter
-@router.post("/items")
+@router.post("/items/", response_model=Item, status_code=201)
 async def create_item(item: Item):
-    item_dict = item.dict()
-    if item.tax:
-        price_with_tax = item.price + item.tax
-        item_dict.update({"price_with_tax": price_with_tax})
-    return item_dict
+    return item
+    # item_dict = item.dict()
+    # if item.tax:
+    #     price_with_tax = item.price + item.tax
+    #     item_dict.update({"price_with_tax": price_with_tax})
+    # return item_dict
 
 # Multiple body parameters
 @router.put("/items/{item_id}")
@@ -41,7 +42,7 @@ async def update_item(item_id: int, item: Annotated[Item, Body(embed=True)], use
 @router.get("/items/")
 # async def read_items(q: Annotated[Union[str, None], Query(min_length=3, max_length=50, regex="^fixedquery$")] = None):
 # async def read_items(q: Annotated[str, Query(min_length=3)] = "fixedquery"):
-async def read_items(q:str):
+async def read_items(q: str):
     results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
     if q:
         results.update({"q": q})
@@ -67,3 +68,14 @@ async def read_item(item_id: str, q:Union[str, None] = None, short:bool = False)
 #     if q:
 #         results.update({"q": q})
 #     return results
+
+testItems= {
+    "foo": {"name": "Foo"},
+    "bar": {"name": "Bar", "description": "The bartenders", "tax": 20.2},
+    "baz": {"name": "Baz", "description": None, "tax": 10.5},
+}
+
+# response_model_exclude_unset => default values won't be included in the response
+@router.get("/items/test/{item_id}", response_model=OmitItem, response_model_exclude_unset=True)
+async def read_item(item_id: str):
+    return testItems[item_id]

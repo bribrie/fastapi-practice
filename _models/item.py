@@ -13,7 +13,7 @@ class Item(BaseModel):
         default=None, title="The description of the item", max_length=300
     )
     price: float = Field(gt=0, description="The price must be greater than zero")
-    tax: Union[float, None] = None
+    tax: float | None = Field(default=None, example=3.2)
     tags: list[str] = [] 
     #tags: set[str] = set()
     image: Union[list[Image], None] = None
@@ -25,3 +25,8 @@ class Offer(BaseModel):
     price: float
     items: list[Item]
     
+
+class OmitItem(BaseModel):
+    name: str
+    description: str | None = None
+    tax: float = 10.5

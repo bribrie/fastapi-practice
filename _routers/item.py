@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, Path, Body
+from fastapi import APIRouter, Query, Path, Body, HTTPException
 from typing import Union, Annotated
 from _models.item import Item, OmitItem
 from _models.user import User
@@ -75,7 +75,20 @@ testItems= {
     "baz": {"name": "Baz", "description": None, "tax": 10.5},
 }
 
+items = {"foo": "The Fooo Wrestlers"}
+
 # response_model_exclude_unset => default values won't be included in the response
 @router.get("/items/test/{item_id}", response_model=OmitItem, response_model_exclude_unset=True)
 async def read_item(item_id: str):
+    if item_id not in items:
+        raise HTTPException(status_code=404, detail="Item not found") 
+    return testItems[item_id]
+
+# Add custom headers
+@router.get("/items-header/{item_id}")
+async def read_item(item_id: str):
+    if item_id not in items:
+        raise HTTPException(
+            status_code=404, detail="Item not found", headers={"X-Error": "There goes my error"}
+        )
     return testItems[item_id]
